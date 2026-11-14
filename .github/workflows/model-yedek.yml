@@ -1,0 +1,36 @@
+# Kanal ayırma modellerini Hugging Face'ten indirip bu deponun "Releases" bölümüne yedekler.
+# GitHub'ın kendi sunucusunda çalışır (ücretsiz); elle "Run workflow" ile ya da bu dosya değişince başlar.
+name: Model yedeği
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/model-yedek.yml']
+permissions:
+  contents: write
+jobs:
+  yedekle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Modelleri indir
+        run: |
+          set -e
+          mkdir -p m && cd m
+          get(){ curl -fL --retry 5 --retry-delay 10 -o "$1" "$2"; ls -la "$1"; }
+          get UVR-MDX-NET-Voc_FT.onnx https://huggingface.co/Politrees/UVR_resources/resolve/main/models/MDXNet/UVR-MDX-NET-Voc_FT.onnx
+          get mel-roformer.fp16.onnx https://huggingface.co/audiojs/mel-roformer/resolve/main/mel-roformer.fp16.onnx
+          get MelBandRoformer.ckpt https://huggingface.co/KimberleyJSN/melbandroformer/resolve/main/MelBandRoformer.ckpt
+          get htdemucs_6s_fp16weights.onnx https://huggingface.co/adowu/htdemucs-6s-onnx/resolve/main/htdemucs_6s_fp16weights.onnx
+          get htdemucs_6s.onnx https://huggingface.co/adowu/htdemucs-6s-onnx/resolve/main/htdemucs_6s.onnx
+          cp ../modeller/MODEL-LISANSLARI.md .
+          sha256sum *.onnx *.ckpt > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - name: Sürüm olarak yükle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          TAG=modeller-$(date -u +%Y-%m-%d)
+          { echo "Kanal ayırma modellerinin yedeği (MIT). Lisanslar: MODEL-LISANSLARI.md"; echo; echo '```'; cat m/SHA256SUMS.txt; echo '```'; } > notes.md
+          gh release delete "$TAG" -y --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" m/* --title "Model yedeği $(date -u +%d.%m.%Y)" --notes-file notes.md
