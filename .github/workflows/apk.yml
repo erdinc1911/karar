@@ -49,3 +49,36 @@ jobs:
           gh release delete apk-test -y --cleanup-tag 2>/dev/null || true
           gh release create apk-test KararEslestirici-test.apk --prerelease --title "Test APK (derleme ${{ github.run_number }})" \
             --notes "Deneme sürümü. Tablete indirip kur: dosyaya dokun, 'bilinmeyen kaynaklardan yüklemeye' izin ver. Test imzasıyla imzalıdır; Google Play sürümü değildir. Kaynak: ${{ github.sha }}"
+      - uses: actions/upload-artifact@v4
+        with: { name: apk, path: KararEslestirici-test.apk, retention-days: 3 }
+  emulator-testi:
+    needs: derle
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: apk }
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Deneme sesi ve araçlar
+        run: |
+          pip install websocket-client
+          ffmpeg -v error -f lavfi -i "sine=f=196:d=40" -f lavfi -i "sine=f=587:d=40" -f lavfi -i "anoisesrc=d=40:a=0.02" -filter_complex "[0][1][2]amix=inputs=3,volume=2" -ac 2 -ar 44100 -b:a 128k deneme.mp3
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          ram-size: 4096M
+          disk-size: 4G
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash android/test/emu_test.sh
+      - name: Sonuçları sürüme ekle
+        if: always()
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          cd test-sonuc && ls -la && cat 2-sayfa.txt 3-sira.txt || true
+          for f in *; do gh release upload apk-test "$f" --clobber -R ${{ github.repository }} || true; done

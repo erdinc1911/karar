@@ -54,13 +54,14 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Test sürümlerinde uygulama içi sayfa bilgisayardan incelenebilir (otomatik testler için)
+        try { if (packageManager.getPackageInfo(packageName, 0).versionName?.startsWith("test") == true) WebView.setWebContentsDebuggingEnabled(true) } catch (_: Exception) {}
         loader = WebViewAssetLoader.Builder().addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this)).build()
         web = WebView(this)
         setContentView(FrameLayout(this).apply { addView(web) })
         with(web.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
-            databaseEnabled = true
             mediaPlaybackRequiresUserGesture = false
             allowFileAccess = false
             allowContentAccess = true
