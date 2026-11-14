@@ -1,0 +1,4 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- diyapazon (karar sesi) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M44,30h5v26a5,5 0,0 0,10 0V30h5v26a10,10 0,0 1,-7.5 9.7V80h-5V65.7A10,10 0,0 1,44 56z"/>
+</vector>

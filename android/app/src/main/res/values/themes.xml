@@ -1,0 +1,10 @@
+<resources>
+    <style name="Tema" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/zemin</item>
+        <item name="android:statusBarColor">@color/zemin</item>
+        <item name="android:navigationBarColor">@color/zemin</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <color name="zemin">#F4F6F1</color>
+    <color name="koyu">#0F5C55</color>
+</resources>

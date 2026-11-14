@@ -1,0 +1,51 @@
+# Android uygulamasını (APK) GitHub'ın sunucusunda derler ve "Releases" bölümüne "apk-test" olarak koyar.
+name: APK derle
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['android/**', 'index.html', '.github/workflows/apk.yml']
+permissions:
+  contents: write
+concurrency: { group: apk, cancel-in-progress: true }
+jobs:
+  derle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.11.1' }
+      - name: Uygulama dosyalarını hazırla
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          set -e
+          A=android/app/src/main/assets
+          mkdir -p $A/www $A/cdn/ort-1.20.1 $A/cdn/ort-1.22.0 $A/cdn/lamejs $A/models
+          cp index.html $A/www/index.html
+          mkdir -p /tmp/npm && cd /tmp/npm
+          for v in 1.20.1 1.22.0; do
+            npm pack onnxruntime-web@$v --silent >/dev/null; mkdir -p o$v; tar xzf onnxruntime-web-$v.tgz -C o$v
+            cp o$v/package/dist/ort.min.js o$v/package/dist/ort.webgpu.min.js $GITHUB_WORKSPACE/$A/cdn/ort-$v/ 2>/dev/null || true
+            cp o$v/package/dist/ort-wasm-simd-threaded*.mjs o$v/package/dist/ort-wasm-simd-threaded*.wasm $GITHUB_WORKSPACE/$A/cdn/ort-$v/
+            cp o$v/package/LICENSE $GITHUB_WORKSPACE/$A/cdn/ort-$v/LICENSE
+          done
+          npm pack lamejs@1.2.1 --silent >/dev/null; mkdir -p l; tar xzf lamejs-1.2.1.tgz -C l
+          cp l/package/lame.min.js $GITHUB_WORKSPACE/$A/cdn/lamejs/; cp l/package/LICENSE $GITHUB_WORKSPACE/$A/cdn/lamejs/LICENSE
+          cd $GITHUB_WORKSPACE
+          gh release download modeller-2026-11-14 -p UVR-MDX-NET-Voc_FT.onnx -p MODEL-LISANSLARI.md -D $A/models
+          du -sh $A/*; ls -la $A/cdn/*
+      - name: Derle
+        working-directory: android
+        env: { KARAR_SURUM: 'test-${{ github.run_number }}' }
+        run: gradle --no-daemon assembleRelease
+      - name: Sürüme koy
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          set -e
+          cp android/app/build/outputs/apk/release/app-release.apk KararEslestirici-test.apk
+          ls -la KararEslestirici-test.apk
+          gh release delete apk-test -y --cleanup-tag 2>/dev/null || true
+          gh release create apk-test KararEslestirici-test.apk --prerelease --title "Test APK (derleme ${{ github.run_number }})" \
+            --notes "Deneme sürümü. Tablete indirip kur: dosyaya dokun, 'bilinmeyen kaynaklardan yüklemeye' izin ver. Test imzasıyla imzalıdır; Google Play sürümü değildir. Kaynak: ${{ github.sha }}"
