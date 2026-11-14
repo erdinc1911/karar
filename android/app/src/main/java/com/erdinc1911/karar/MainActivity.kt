@@ -143,8 +143,7 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface fun foreground(on: Boolean, text: String) {
             runOnUiThread {
                 if (on && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) bildirimIzni.launch(Manifest.permission.POST_NOTIFICATIONS)
-                val i = Intent(this@MainActivity, AyristirmaHizmeti::class.java).putExtra("metin", text)
-                if (on) ContextCompat.startForegroundService(this@MainActivity, i) else stopService(i)
+                try { if (on) AyristirmaHizmeti.baslat(this@MainActivity, text) else AyristirmaHizmeti.durdur() } catch (_: Exception) {}
             }
         }
         @JavascriptInterface fun battery(): String {
