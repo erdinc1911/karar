@@ -1,7 +1,7 @@
 # Emülatördeki uygulamanın sayfasında JavaScript çalıştırır (Chrome DevTools Protocol)
 import json,sys,urllib.request,websocket
 def ws():
-    t=[x for x in json.load(urllib.request.urlopen('http://127.0.0.1:9222/json')) if x.get('type')=='page']
+    t=[x for x in json.load(urllib.request.urlopen('http://127.0.0.1:9222/json')) if x.get('type')=='page' or 'appassets' in x.get('url','')]
     return websocket.create_connection(t[0]['webSocketDebuggerUrl'],timeout=600,suppress_origin=True)
 _id=[0]
 def ev(c,js):
@@ -13,4 +13,6 @@ def ev(c,js):
             if 'exceptionDetails' in res:return 'HATA: '+json.dumps(res['exceptionDetails'])[:400]
             return res.get('result',{}).get('value')
 if __name__=='__main__':
-    c=ws();print(ev(c,sys.argv[1]))
+    try:
+        c=ws();print(ev(c,sys.argv[1]))
+    except Exception as e:print('CDP HATA:',repr(e)[:300])

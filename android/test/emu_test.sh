@@ -12,7 +12,7 @@ sleep 25
 adb exec-out screencap -p > $O/1-acilis.png
 SOCK=$(adb shell cat /proc/net/unix | grep -o 'webview_devtools_remote_[0-9]*' | head -1); echo "soket: $SOCK"
 adb forward tcp:9222 localabstract:$SOCK
-curl -s http://127.0.0.1:9222/json | head -c 600; echo
+curl -s http://127.0.0.1:9222/json | tee $O/0-hedefler.txt | head -c 900; echo
 E(){ python3 android/test/cdp.py "$1"; }
 E "JSON.stringify({baslik:document.title,surum:(document.body.innerText.match(/sürüm [0-9.]+ [0-9:]+/)||[''])[0],native:!!window.KararNative,ort:typeof ort})" | tee $O/2-sayfa.txt
 B64=$(base64 -w0 deneme.wav)
@@ -28,5 +28,5 @@ adb shell input keyevent KEYCODE_WAKEUP; sleep 3; adb shell wm dismiss-keyguard;
 adb exec-out screencap -p > $O/5-sonra.png
 E "JSON.stringify({sira:qGet().map(z=>[z.st,z.msg||'']),kanallar:store.get('scIdx',[]).length})" | tee -a $O/3-sira.txt
 adb shell dumpsys activity services $P | grep -i "isForeground\|AyristirmaHizmeti" | head -5 | tee -a $O/3-sira.txt
-adb logcat -d | grep -i -E "chromium|karar|console|FATAL" | tail -150 > $O/6-logcat.txt
+adb logcat -d | grep -i -E "KararWeb|chromium|AndroidRuntime|FATAL" | tail -200 > $O/6-logcat.txt
 exit 0

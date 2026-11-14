@@ -28,6 +28,7 @@ import java.io.File
 import java.io.InputStream
 
 class MainActivity : ComponentActivity() {
+    companion object { const val ADRES = "https://appassets.androidplatform.net/assets/www/index.html" }
     private lateinit var web: WebView
     private lateinit var loader: WebViewAssetLoader
     private var dosyaGeri: ValueCallback<Array<Uri>>? = null
@@ -80,6 +81,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         web.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(m: ConsoleMessage): Boolean { android.util.Log.i("KararWeb", "${m.messageLevel()} ${m.sourceId()?.substringAfterLast('/')}:${m.lineNumber()} ${m.message()}"); return true }
             override fun onShowFileChooser(v: WebView, cb: ValueCallback<Array<Uri>>, p: FileChooserParams): Boolean {
                 dosyaGeri?.onReceiveValue(null); dosyaGeri = cb
                 val i = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -111,8 +113,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
-        if (savedInstanceState == null) web.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
-        else web.restoreState(savedInstanceState)
+        val geri = savedInstanceState?.let { web.restoreState(it) }
+        if (geri == null || web.url == null) web.loadUrl(ADRES)
     }
 
     override fun onSaveInstanceState(out: Bundle) { super.onSaveInstanceState(out); web.saveState(out) }
