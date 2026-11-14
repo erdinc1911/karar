@@ -66,7 +66,10 @@ jobs:
       - name: Deneme sesi ve araçlar
         run: |
           pip install websocket-client
-          ffmpeg -v error -f lavfi -i "sine=f=196:d=40" -f lavfi -i "sine=f=587:d=40" -f lavfi -i "anoisesrc=d=40:a=0.02" -filter_complex "[0][1][2]amix=inputs=3,volume=2" -ac 2 -ar 44100 -b:a 128k deneme.mp3
+          python3 -c "
+          import wave,math,random,struct
+          sr=44100;n=sr*30;w=wave.open('deneme.wav','wb');w.setnchannels(1);w.setsampwidth(2);w.setframerate(sr)
+          w.writeframes(b''.join(struct.pack('<h',int(9000*(0.5*math.sin(2*math.pi*196*i/sr)+0.4*math.sin(2*math.pi*587*i/sr)*(1+math.sin(i/sr*3))/2+0.05*random.uniform(-1,1)))) for i in range(n)));w.close()"
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
