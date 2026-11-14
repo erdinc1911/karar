@@ -20,10 +20,10 @@ python3 android/test/cdp.py yukle deneme.wav | tee -a $O/2-sayfa.txt
 E "(async()=>{await libDraw();const q=qGet();const x=q.find(z=>z.key===libCur.key);if(x){x.kind='mdx';x.ch=2;store.set('sepQueue',q)}qStart({now:true});await sleep(3000);return JSON.stringify(qGet().map(z=>[z.name,z.st,z.msg||'']))})()" | tee -a $O/3-sira.txt
 sleep 20
 adb exec-out screencap -p > $O/4-calisirken.png
-E "JSON.stringify(qGet().map(z=>[z.st,z.msg||'']))" | tee -a $O/3-sira.txt
+E "JSON.stringify({st:qGet().map(z=>z.st),bitti:sepJob?sepJob.done:null,toplam:sepJob?sepJob.nCh:null,yazi:($('#qBarT')||{}).innerText||'',coi:self.crossOriginIsolated,sab:typeof SharedArrayBuffer,cekirdek:navigator.hardwareConcurrency})" | tee -a $O/3-sira.txt
 echo "--- ekran kapatılıyor ---" | tee -a $O/3-sira.txt
 adb shell input keyevent KEYCODE_SLEEP
-for i in $(seq 1 16); do sleep 15; echo "$(date +%T) ekran: $(adb shell dumpsys power | grep -o 'mWakefulness=[A-Za-z]*') | $(E 'JSON.stringify(qGet().map(z=>[z.st,z.msg||""]))')" | tee -a $O/3-sira.txt; done
+for i in $(seq 1 20); do sleep 30; echo "$(date +%T) ekran: $(adb shell dumpsys power | grep -o 'mWakefulness=[A-Za-z]*') | $(E "JSON.stringify({st:qGet().map(z=>z.st),bitti:sepJob?sepJob.done:null,toplam:sepJob?sepJob.nCh:null,yazi:($('#qBarT')||{}).innerText||'',coi:self.crossOriginIsolated,sab:typeof SharedArrayBuffer,cekirdek:navigator.hardwareConcurrency})")" | tee -a $O/3-sira.txt; done
 adb shell input keyevent KEYCODE_WAKEUP; sleep 3; adb shell wm dismiss-keyguard; sleep 3
 adb exec-out screencap -p > $O/5-sonra.png
 E "JSON.stringify({sira:qGet().map(z=>[z.st,z.msg||'']),kanallar:store.get('scIdx',[]).length})" | tee -a $O/3-sira.txt
