@@ -5,7 +5,7 @@ def ws():
     return websocket.create_connection(t[0]['webSocketDebuggerUrl'],timeout=600,suppress_origin=True)
 _id=[0]
 def ev(c,js):
-    _id[0]+=1;c.send(json.dumps({'id':_id[0],'method':'Runtime.evaluate','params':{'expression':js,'awaitPromise':True,'returnByValue':True}}))
+    _id[0]+=1;c.send(json.dumps({'id':_id[0],'method':'Runtime.evaluate','params':{'expression':'window.__ev('+json.dumps(js)+')','awaitPromise':True,'returnByValue':True}}))
     while True:
         r=json.loads(c.recv())
         if r.get('id')==_id[0]:

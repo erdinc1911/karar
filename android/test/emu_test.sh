@@ -4,6 +4,7 @@ set -x
 P=com.erdinc1911.karar
 O=test-sonuc; mkdir -p $O
 adb install -r KararEslestirici-test.apk
+adb shell wm size 1600x2560; adb shell wm density 320
 adb shell pm grant $P android.permission.POST_NOTIFICATIONS || true
 adb shell pm grant $P android.permission.RECORD_AUDIO || true
 adb logcat -c
