@@ -14,5 +14,10 @@ def ev(c,js):
             return res.get('result',{}).get('value')
 if __name__=='__main__':
     try:
-        c=ws();print(ev(c,sys.argv[1]))
+        c=ws()
+        if sys.argv[1]=='yukle':   # büyük dosyayı parça parça sayfaya aktar, sonra uygulamada aç
+            import base64;b=base64.b64encode(open(sys.argv[2],'rb').read()).decode();ev(c,"window.__p=''")
+            for i in range(0,len(b),400000):ev(c,"window.__p+="+json.dumps(b[i:i+400000])+";0")
+            print(ev(c,"(async()=>{const u=Uint8Array.from(atob(window.__p),x=>x.charCodeAt(0));window.__p='';const f=new File([u],'Deneme - Test.wav',{type:'audio/wav',lastModified:1});await openLocal(f);for(let i=0;i<150&&!(media.duration>0&&libCur);i++)await sleep(200);return JSON.stringify({sure:media.duration,kayit:!!libCur})})()"))
+        else:print(ev(c,sys.argv[1]))
     except Exception as e:print('CDP HATA:',repr(e)[:300])
