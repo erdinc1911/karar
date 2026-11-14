@@ -29,10 +29,10 @@ jobs:
             npm pack onnxruntime-web@$v --silent >/dev/null; mkdir -p o$v; tar xzf onnxruntime-web-$v.tgz -C o$v
             cp o$v/package/dist/ort.min.js o$v/package/dist/ort.webgpu.min.js $GITHUB_WORKSPACE/$A/cdn/ort-$v/ 2>/dev/null || true
             cp o$v/package/dist/ort-wasm-simd-threaded*.mjs o$v/package/dist/ort-wasm-simd-threaded*.wasm $GITHUB_WORKSPACE/$A/cdn/ort-$v/
-            cp o$v/package/LICENSE $GITHUB_WORKSPACE/$A/cdn/ort-$v/LICENSE
+            cp o$v/package/LICENSE* $GITHUB_WORKSPACE/$A/cdn/ort-$v/ 2>/dev/null || true
           done
           npm pack lamejs@1.2.1 --silent >/dev/null; mkdir -p l; tar xzf lamejs-1.2.1.tgz -C l
-          cp l/package/lame.min.js $GITHUB_WORKSPACE/$A/cdn/lamejs/; cp l/package/LICENSE $GITHUB_WORKSPACE/$A/cdn/lamejs/LICENSE
+          cp l/package/lame.min.js $GITHUB_WORKSPACE/$A/cdn/lamejs/; cp l/package/LICENSE* $GITHUB_WORKSPACE/$A/cdn/lamejs/ 2>/dev/null || true
           cd $GITHUB_WORKSPACE
           gh release download modeller-2026-11-14 -p UVR-MDX-NET-Voc_FT.onnx -p MODEL-LISANSLARI.md -D $A/models
           du -sh $A/*; ls -la $A/cdn/*
