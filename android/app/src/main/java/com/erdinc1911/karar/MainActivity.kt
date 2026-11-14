@@ -23,6 +23,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
 import java.io.File
 import java.io.InputStream
@@ -59,7 +63,17 @@ class MainActivity : ComponentActivity() {
         try { if (packageManager.getPackageInfo(packageName, 0).versionName?.startsWith("test") == true) WebView.setWebContentsDebuggingEnabled(true) } catch (_: Exception) {}
         loader = WebViewAssetLoader.Builder().addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this)).build()
         web = WebView(this)
-        setContentView(FrameLayout(this).apply { addView(web) })
+        // Uygulama sistem çubuklarının (saat/pil çubuğu, gezinme çubuğu, klavye) altında kalmasın: Android 15'te kenardan kenara zorunlu
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val kok = FrameLayout(this).apply { setBackgroundColor(0xFFEAEEE8.toInt()); addView(web) }
+        setContentView(kok)
+        ViewCompat.setOnApplyWindowInsetsListener(kok) { v, ins ->
+            val b = ins.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime())
+            v.setPadding(b.left, b.top, b.right, b.bottom); WindowInsetsCompat.CONSUMED
+        }
+        WindowInsetsControllerCompat(window, window.decorView).apply { isAppearanceLightStatusBars = true; isAppearanceLightNavigationBars = true }
+        web.overScrollMode = View.OVER_SCROLL_NEVER
+        web.isVerticalScrollBarEnabled = false; web.isHorizontalScrollBarEnabled = false
         with(web.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -68,6 +82,7 @@ class MainActivity : ComponentActivity() {
             allowContentAccess = true
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
             textZoom = 100
+            setSupportZoom(false); builtInZoomControls = false; displayZoomControls = false   // uygulama gibi: iki parmakla büyütme yok
         }
         web.addJavascriptInterface(Kopru(), "KararNative")
         web.webViewClient = object : WebViewClient() {
@@ -127,10 +142,12 @@ class MainActivity : ComponentActivity() {
             url.startsWith("https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/") -> "cdn/ort-1.22.0/" + url.substringAfterLast('/').substringBefore('?')
             url.startsWith("https://cdn.jsdelivr.net/npm/lamejs@1.2.1/") -> "cdn/lamejs/lame.min.js"
             url.contains("UVR-MDX-NET-Voc_FT.onnx") -> "models/UVR-MDX-NET-Voc_FT.onnx"
+            url.startsWith("https://fonts.googleapis.com/css2") -> "fonts/fonts.css"
+            url.startsWith("https://fonts.gstatic.com/") -> "fonts/" + url.removePrefix("https://fonts.gstatic.com/").replace('/', '_')
             else -> return null
         }
         val inp: InputStream = try { assets.open(yol) } catch (_: Exception) { return null }
-        val tur = when { yol.endsWith(".wasm") -> "application/wasm"; yol.endsWith(".onnx") -> "application/octet-stream"; else -> "text/javascript" }
+        val tur = when { yol.endsWith(".wasm") -> "application/wasm"; yol.endsWith(".onnx") -> "application/octet-stream"; yol.endsWith(".css") -> "text/css"; yol.contains("fonts/") -> "font/woff2"; else -> "text/javascript" }
         val boy = try { assets.openFd(yol).use { it.length } } catch (_: Exception) { -1L }
         val h = mutableMapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=31536000")
         if (boy > 0) h["Content-Length"] = boy.toString()

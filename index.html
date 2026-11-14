@@ -98,7 +98,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 #lyrWin .cwbody{max-height:calc(100vh - 70px);overflow:auto;overscroll-behavior:contain}
 #lyrWin[hidden]{display:none!important}
 #lyrWin{width:min(460px,calc(100vw - 24px))}
-#licBox summary{cursor:pointer}.lic{display:grid;gap:8px;font-size:13.5px;line-height:1.5}.lic ul{margin:0;padding-left:18px;display:grid;gap:6px}.lic p{margin:0}.lic a{color:var(--accent);word-break:break-word}.lictx{white-space:pre-wrap;font-size:11.5px;max-height:240px;overflow:auto;margin:6px 0 0}#lyrWhy summary{cursor:pointer;color:var(--accent);font-size:13px}#lyrWhy .sub{display:block;margin-top:4px}
+html.apk,html.apk body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;-webkit-touch-callout:none}html.apk :is(input,textarea,select,[contenteditable],pre){-webkit-user-select:text;user-select:text}html.apk ::-webkit-scrollbar{width:0;height:0}#licBox summary{cursor:pointer}.lic{display:grid;gap:8px;font-size:13.5px;line-height:1.5}.lic ul{margin:0;padding-left:18px;display:grid;gap:6px}.lic p{margin:0}.lic a{color:var(--accent);word-break:break-word}.lictx{white-space:pre-wrap;font-size:11.5px;max-height:240px;overflow:auto;margin:6px 0 0}#lyrWhy summary{cursor:pointer;color:var(--accent);font-size:13px}#lyrWhy .sub{display:block;margin-top:4px}
 #lyrList{display:grid;gap:4px;max-height:220px;overflow:auto}
 #lyrList button{text-align:left;display:grid;gap:1px;padding:6px 10px;min-height:0}
 #lyrList button small{color:var(--muted);font-size:12px}
@@ -1487,6 +1487,8 @@ $('#vidPick').addEventListener('click',()=>{$('#vidPick').hidden=true;$('#pickBt
 // Tarayıcıda: uygulama önde ve ekran açıkken çalışır (ekran kapanırsa tarayıcı işlemi dondurur; geri açılınca devam eder).
 // APK'da: aşağıdaki NATIVE köprüsü varsa ekran kapalıyken de sürebilir (ön plan hizmeti + işlemci uyanık tutma).
 const NATIVE=window.KararNative||null;
+// Android uygulamasında: sayfa değil uygulama gibi davran (büyütme yok, yazılar seçilmez, kaydırma sekmesi yok)
+if(NATIVE){document.documentElement.classList.add('apk');const vm=document.querySelector('meta[name=viewport]');if(vm)vm.content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover'}
 // Android geri tuşu: önce açık pencere kapanır; kapatacak bir şey yoksa false döner (uygulama arka plana alınır, işlem sürer)
 window.__kararBack=()=>{const m=[...document.querySelectorAll('.modal')].find(x=>!x.hidden);if(m){const b=m.querySelector('#libClose,#setClose,#sepClose,[id$=Close]');if(b){b.click();return true}m.hidden=true;return true}
   if(!$('#lyrWin').hidden){lyrWinShow(false);return true}if(!$('#recPanel').hidden&&$('#recClose')){$('#recClose').click();return true}if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return true}return false};   // APK yapılınca uygulama tarafı bu nesneyi sağlayacak

@@ -4,7 +4,7 @@ set -x
 P=com.erdinc1911.karar
 O=test-sonuc; mkdir -p $O
 adb install -r KararEslestirici-test.apk
-adb shell wm size 1600x2560; adb shell wm density 320
+adb shell wm size 1920x3000; adb shell wm density 400
 adb shell pm grant $P android.permission.POST_NOTIFICATIONS || true
 adb shell pm grant $P android.permission.RECORD_AUDIO || true
 adb logcat -c
@@ -15,6 +15,11 @@ SOCK=$(adb shell cat /proc/net/unix | grep -o 'webview_devtools_remote_[0-9]*' |
 adb forward tcp:9222 localabstract:$SOCK
 curl -s http://127.0.0.1:9222/json | tee $O/0-hedefler.txt | head -c 900; echo
 E(){ python3 android/test/cdp.py "$1"; }
+E "JSON.stringify({gen:innerWidth,yuk:innerHeight,tasma:document.documentElement.scrollWidth-innerWidth,ust:document.querySelector('header')?document.querySelector('header').getBoundingClientRect().top:null,dpr:devicePixelRatio,apk:document.documentElement.classList.contains('apk')})" | tee $O/2-olcu.txt
+adb shell settings put system user_rotation 1; adb shell settings put system accelerometer_rotation 0; sleep 6
+adb exec-out screencap -p > $O/1b-yatay.png
+E "JSON.stringify({gen:innerWidth,yuk:innerHeight,tasma:document.documentElement.scrollWidth-innerWidth})" | tee -a $O/2-olcu.txt
+adb shell settings put system user_rotation 0; sleep 6
 E "JSON.stringify({baslik:document.title,surum:(document.body.innerText.match(/sürüm [0-9.]+ [0-9:]+/)||[''])[0],native:!!window.KararNative,ort:typeof ort})" | tee $O/2-sayfa.txt
 python3 android/test/cdp.py yukle deneme.wav | tee -a $O/2-sayfa.txt
 E "(async()=>{await libDraw();const q=qGet();const x=q.find(z=>z.key===libCur.key);if(x){x.kind='mdx';x.ch=2;store.set('sepQueue',q)}qStart({now:true});await sleep(3000);return JSON.stringify(qGet().map(z=>[z.name,z.st,z.msg||'']))})()" | tee -a $O/3-sira.txt

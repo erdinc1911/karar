@@ -35,6 +35,12 @@ jobs:
           cp l/package/lame.min.js $GITHUB_WORKSPACE/$A/cdn/lamejs/; cp l/package/LICENSE* $GITHUB_WORKSPACE/$A/cdn/lamejs/ 2>/dev/null || true
           cd $GITHUB_WORKSPACE
           gh release download modeller-2026-11-14 -p UVR-MDX-NET-Voc_FT.onnx -p MODEL-LISANSLARI.md -D $A/models
+          # yazı tipleri (internetsiz de aynı görünüm): sayfanın kullandığı Google Fonts adresi
+          mkdir -p $A/fonts
+          FURL=$(grep -o 'https://fonts.googleapis.com/css2[^"]*' index.html | head -1 | sed 's/&amp;/\&/g')
+          curl -fsSL -A "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36" "$FURL" -o $A/fonts/fonts.css
+          for u in $(grep -o 'https://fonts.gstatic.com/[^)]*' $A/fonts/fonts.css | sort -u); do f=$(echo "${u#https://fonts.gstatic.com/}" | tr '/' '_'); curl -fsSL "$u" -o "$A/fonts/$f"; done
+          ls $A/fonts | head; du -sh $A/fonts
           du -sh $A/*; ls -la $A/cdn/*
       - name: Derle
         working-directory: android
@@ -72,7 +78,7 @@ jobs:
           w.writeframes(b''.join(struct.pack('<h',int(9000*(0.5*math.sin(2*math.pi*196*i/sr)+0.4*math.sin(2*math.pi*587*i/sr)*(1+math.sin(i/sr*3))/2+0.05*random.uniform(-1,1)))) for i in range(n)));w.close()"
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 35
           target: google_apis
           arch: x86_64
           ram-size: 4096M
