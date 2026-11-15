@@ -73,6 +73,9 @@ class MainActivity : ComponentActivity() {
         }
         WindowInsetsControllerCompat(window, window.decorView).apply { isAppearanceLightStatusBars = true; isAppearanceLightNavigationBars = true }
         web.overScrollMode = View.OVER_SCROLL_NEVER
+        // Sayfayı çalıştıran WebView işlemi, uygulama görünmezken (ekran kapalı, başka uygulama) önemsiz sayılıp dondurulmasın:
+        // önceliği uygulamanın kendi önceliğine bağlı kalır; ayrıştırma hizmeti çalışırken uygulama "ön planda" sayılır.
+        web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
         web.isVerticalScrollBarEnabled = false; web.isHorizontalScrollBarEnabled = false
         with(web.settings) {
             javaScriptEnabled = true
@@ -132,6 +135,7 @@ class MainActivity : ComponentActivity() {
         if (geri == null || web.url == null) web.loadUrl(ADRES)
     }
 
+    override fun onPause() { super.onPause(); web.resumeTimers() }
     override fun onSaveInstanceState(out: Bundle) { super.onSaveInstanceState(out); web.saveState(out) }
     override fun onDestroy() { if (!AyristirmaHizmeti.calisiyor) web.destroy(); super.onDestroy() }
 
@@ -193,5 +197,8 @@ class MainActivity : ComponentActivity() {
             runOnUiThread { try { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) } catch (_: Exception) {} }
         }
         @JavascriptInterface fun isApp(): Boolean = true
+        @JavascriptInterface fun openAppSettings() {
+            runOnUiThread { try { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) } catch (_: Exception) {} }
+        }
     }
 }

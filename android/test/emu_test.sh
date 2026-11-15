@@ -33,5 +33,11 @@ adb shell input keyevent KEYCODE_WAKEUP; sleep 3; adb shell wm dismiss-keyguard;
 adb exec-out screencap -p > $O/5-sonra.png
 E "JSON.stringify({sira:qGet().map(z=>[z.st,z.msg||'']),kanallar:store.get('scIdx',[]).length})" | tee -a $O/3-sira.txt
 adb shell dumpsys activity services $P | grep -i "isForeground\|AyristirmaHizmeti" | head -5 | tee -a $O/3-sira.txt
+echo "--- 2. deneme: başka uygulamaya geçiş (ana ekran) ---" | tee -a $O/3-sira.txt
+E "(async()=>{const it=libCur;await libStemsDel(it);it.stage='q';await lbPut(it);store.set('sepQueue',[]);await libDraw();const q=qGet();q.forEach(z=>{z.kind='mdx';z.ch=2});store.set('sepQueue',q);qStart({now:true});await sleep(4000);return JSON.stringify(qGet().map(z=>z.st))})()" | tee -a $O/3-sira.txt
+sleep 15
+adb shell input keyevent KEYCODE_HOME
+for i in $(seq 1 12); do sleep 30; echo "$(date +%T) odak: $(adb shell dumpsys window | grep -o 'mCurrentFocus=[^ ]* [^ ]*' | head -1) | $(E "JSON.stringify({st:qGet().map(z=>z.st),bitti:sepJob?sepJob.done:null,toplam:sepJob?sepJob.nCh:null})")" | tee -a $O/3-sira.txt; done
+adb exec-out screencap -p > $O/5b-anaekran.png
 adb logcat -d | grep -i -E "KararWeb|chromium|AndroidRuntime|FATAL" | tail -200 > $O/6-logcat.txt
 exit 0

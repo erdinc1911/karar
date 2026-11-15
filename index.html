@@ -277,7 +277,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transf
 
 <div class="app">
   <header class="bar">
-    <h1>Karar Eşleştirici</h1><span class="ver" title="Uygulama sürümü">sürüm 14.11.2026 19:00</span>
+    <h1>Karar Eşleştirici</h1><span class="ver" title="Uygulama sürümü">sürüm 15.11.2026 10:00</span>
     <span class="state busy" id="state" role="status" aria-live="polite">Hazırlanıyor…</span>
     <span class="fname grow" id="fname"></span>
     <button id="stemChip" hidden></button>
@@ -457,6 +457,7 @@ SOFTWARE.</pre></details>
       <div class="row"><button id="libAdd">＋ Dosya ekle</button><input type="file" id="libFiles" multiple accept="audio/*,video/*" hidden><span class="sub grow">Her parçanın altından nasıl ayrıştırılacağını seç. “Ayırma” seçilirse parça beklemeden Atölye’ye geçer. Bitenler Atölye’ye geçer.</span></div>
       <details><summary><b id="qDevH">Cihaz kontrol ediliyor…</b></summary><pre id="qDev" class="sub" style="white-space:pre-wrap;margin:6px 0 0"></pre></details>
       <details><summary>Ne zaman başlasın, mola, sızıntı</summary><span class="label">Ne zaman başlasın</span><div class="ranges"><label><input type="radio" name="qStart" value="now"> Hemen</label><label><input type="radio" name="qStart" value="charge"> Şarja takılınca</label><label><input type="radio" name="qStart" value="at"> Saatte: <input type="time" id="qAt" style="width:auto"></label></div><div class="row"><label class="sub">Parçalar arası mola <select id="qRest"><option value="0">yok</option><option value="1">1 dk</option><option value="3">3 dk</option></select></label><label class="sub"><input type="checkbox" id="qLk"> Vokal sızıntısını azalt (hafif)</label></div><span class="sub">“En yüksek kalite” çok yavaştır; ilk kullanımda yaklaşık 443 MB model indirir. Ekran kapanırsa ya da başka uygulamaya geçersen işlem duraklar, geri dönünce sürer.</span></details>
+      <div class="sub" id="qBgHint" hidden>Ekran kapanınca ayrıştırma duruyorsa tabletin pil tasarrufu uygulamayı durduruyordur. <button id="qBgBtn">🔋 Arka planda çalışma izni</button> Açılan sayfada <b>Pil</b> bölümünden “Kısıtlama yok” ya da “Arka planda çalışmaya izin ver”i seç. Honor’da ayrıca Ayarlar › Pil › Uygulama başlatma › Karar Eşleştirici: “Otomatik yönet”i kapatıp üç seçeneği aç.</div>
       <div class="row"><button class="primary" id="qGo">▶ Başlat</button><button id="qStop" hidden>■ Durdur</button><button id="qClean">Hatalıları temizle</button><span class="sub" id="qSum"></span></div>
       <div class="sub" id="qNow" aria-live="polite" style="min-height:1.2em;white-space:pre-wrap"></div>
       <div id="qList"></div>
@@ -1490,6 +1491,7 @@ const NATIVE=window.KararNative||null;
 // Android uygulamasında: sayfa değil uygulama gibi davran (büyütme yok, yazılar seçilmez, kaydırma sekmesi yok)
 if(NATIVE){document.documentElement.classList.add('apk');const vm=document.querySelector('meta[name=viewport]');if(vm)vm.content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover'}
 // Android geri tuşu: önce açık pencere kapanır; kapatacak bir şey yoksa false döner (uygulama arka plana alınır, işlem sürer)
+if(NATIVE&&NATIVE.openAppSettings){addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('qBgHint');if(h){h.hidden=false;document.getElementById('qBgBtn').addEventListener('click',()=>NATIVE.openAppSettings())}})}
 window.__kararBack=()=>{const m=[...document.querySelectorAll('.modal')].find(x=>!x.hidden);if(m){const b=m.querySelector('#libClose,#setClose,#sepClose,[id$=Close]');if(b){b.click();return true}m.hidden=true;return true}
   if(!$('#lyrWin').hidden){lyrWinShow(false);return true}if(!$('#recPanel').hidden&&$('#recClose')){$('#recClose').click();return true}if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return true}return false};   // APK yapılınca uygulama tarafı bu nesneyi sağlayacak
 const PLAT={
@@ -2012,7 +2014,7 @@ function sepFinish(){const J=sepJob;if(J&&J.cacheKey)sepPartDel(J.cacheKey);sepP
   stems={r0:J.r0,r1:J.r1,data:J.asm.finish?J.asm.finish():J.asm.outs,kind:J.kind,ch:J.ch};store.set('sepKind',J.kind);sepKillAll();sepEnd();
   sepStage(5);document.querySelectorAll('#sepStages li').forEach((li,k)=>li.textContent=SEP_NAMES[k]);
   sepBar(100,`Bitti · ${fmt(J.r0)} – ${fmt(J.r1)} · ${Math.round((Date.now()-J.t0)/1000)} sn sürdü · ${used}.`);const ws=Object.entries(J.stats||{}).map(([id,s])=>`${ENG[s.e]}-${id}: ${s.n} parça, ort. ${(s.t/1000).toFixed(1)} sn`).join(' · ');
-  $('#sepEng').textContent=`Tanı → ${KINDS[J.kind].name}, ${J.ch===2?'stereo':'mono'} · ${ws} | Ekran kartı: ${J.gpuWhy} | Ek hesaplayıcılar: ${J.helperWhy||'-'} | Model: ${J.modelSrc||'-'} | Motor: ${J.ortSrc||'-'} | ${J.sdiag} | İşlemci ayarı: ${J.cpuOptOk==='all'?'tam optimizasyon':J.cpuOptOk==='disabled'?'en az bellek':J.cpuOptOk||'-'}${J.prof[optKey(J)+'H']?' (yardımcılar: en az bellek)':''} | Cihaz: ${J.dv.cores} çekirdek, ${J.dv.mem} GB+${(J.dv.nowCores<J.dv.cores||J.dv.nowMem<J.dv.mem)?` (tarayıcı şu an ${J.dv.nowCores} çekirdek, ${J.dv.nowMem} GB bildiriyor; pil tasarrufu açık olabilir)`:''} | sürüm 14.11.2026 19:00`;
+  $('#sepEng').textContent=`Tanı → ${KINDS[J.kind].name}, ${J.ch===2?'stereo':'mono'} · ${ws} | Ekran kartı: ${J.gpuWhy} | Ek hesaplayıcılar: ${J.helperWhy||'-'} | Model: ${J.modelSrc||'-'} | Motor: ${J.ortSrc||'-'} | ${J.sdiag} | İşlemci ayarı: ${J.cpuOptOk==='all'?'tam optimizasyon':J.cpuOptOk==='disabled'?'en az bellek':J.cpuOptOk||'-'}${J.prof[optKey(J)+'H']?' (yardımcılar: en az bellek)':''} | Cihaz: ${J.dv.cores} çekirdek, ${J.dv.mem} GB+${(J.dv.nowCores<J.dv.cores||J.dv.nowMem<J.dv.mem)?` (tarayıcı şu an ${J.dv.nowCores} çekirdek, ${J.dv.nowMem} GB bildiriyor; pil tasarrufu açık olabilir)`:''} | sürüm 15.11.2026 10:00`;
   $('#sepEngCopy').hidden=false;setState('Kanallar hazır','ok');renderStems();$('#sepResult').hidden=false;
   if(J.cacheKey)scPut(J.cacheKey,{data:stems.data,ch:J.ch,t:Date.now()}).then(ok=>{if(ok)$('#sepTxt').textContent+=' Sonuç saklandı; bu bölüm bir daha hesaplanmayacak.'});sepDoneHook()}
 let afterSepCb=null;function sepDoneHook(){if(afterSepCb){const f=afterSepCb;afterSepCb=null;setTimeout(f,300)}}
